@@ -2,6 +2,7 @@ package top.bananaclimbing.publishingdemo;
 
 import java.util.Map;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.SpringBootVersion;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -31,9 +32,20 @@ public class PublishingDemoApplication {
         @GetMapping("/health")
         ResponseEntity<Map<String, Object>> health() {
             try {
-                Long count = database.queryForObject("SELECT COUNT(*) FROM publishing_checks", Long.class);
+                Map<String, Object> proof = database.queryForMap(
+                        "SELECT current_user AS database_role, "
+                        + "COALESCE((SELECT ssl FROM pg_stat_ssl WHERE pid = pg_backend_pid()), false) AS database_tls, "
+                        + "(SELECT COUNT(*) FROM publishing_checks) AS record_count");
+                boolean tls = Boolean.TRUE.equals(proof.get("database_tls"));
+                boolean roleVerified = "runtime_app".equals(proof.get("database_role"));
+                if (!tls || !roleVerified) {
+                    return ResponseEntity.status(503).body(Map.of("status", "not_ready", "language", "Java",
+                            "buildTool", "Maven", "database", "not_ready"));
+                }
                 return ResponseEntity.ok(Map.of("status", "ready", "language", "Java",
-                        "buildTool", "Maven", "database", "connected", "recordCount", count == null ? 0L : count));
+                        "buildTool", "Maven", "database", "connected", "databaseTls", tls,
+                        "databaseRoleVerified", roleVerified, "framework", "Spring Boot " + SpringBootVersion.getVersion(),
+                        "recordCount", proof.get("record_count")));
             } catch (RuntimeException failure) {
                 return ResponseEntity.status(503).body(Map.of("status", "not_ready", "language", "Java",
                         "buildTool", "Maven", "database", "not_ready"));
