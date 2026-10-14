@@ -1,1 +1,17 @@
-{"name":"banana-publishing-code-demo","version":"1.0.0","private":true,"type":"module","scripts":{"start":"node server.mjs"},"dependencies":{"pg":"8.23.1"}}
+{
+  "name": "banana-publishing-typescript-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.25.0",
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "start": "node dist/server.js"
+  },
+  "dependencies": { "pg": "8.23.1" },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "@types/node": "22.13.10",
+    "@types/pg": "8.15.5"
+  }
+}
