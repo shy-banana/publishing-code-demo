@@ -1,1 +1,8 @@
-{"runtime":"node","port":3000,"readinessPath":"/readyz","initialSql":"database/001-initial.sql","nativeOidc":false}
+{
+  "runtime": "python",
+  "port": 8000,
+  "readinessPath": "/readyz",
+  "entrypoint": "main.py",
+  "initialSql": "database/001-initial.sql",
+  "nativeOidc": false
+}

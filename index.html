@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Python · FastAPI 代码发布验收</title>
+<style>body{font:18px system-ui;max-width:760px;margin:40px auto;padding:20px;background:#f7f8f4;color:#193f36}input,button{font:inherit;padding:12px;max-width:100%;box-sizing:border-box}button{background:#204c40;color:white;border:0;border-radius:8px}form{display:flex;gap:10px;flex-wrap:wrap}input{flex:1;min-width:180px}li{margin:15px 0}#status{min-height:1.5em;color:#6b3f16}small{display:block;margin-top:20px}</style></head>
+<body><h1>Python · FastAPI 代码发布验收</h1><p>本页由 GitHub 仓库中的 Python 代码运行。验收记录保存到平台提供的独立数据库，便于核对更新与恢复后的数据。</p>
+<form id="add"><input id="title" required maxlength="120" placeholder="输入一条合成验收记录" aria-label="验收记录"><button>添加记录</button></form>
+<p id="status" role="status"></p><input id="keyword" maxlength="100" placeholder="按关键词筛选" aria-label="筛选记录"><p id="count"></p><ul id="records"></ul><small>python-fastapi-v1</small>
+<script>
+const status=document.querySelector('#status');
+async function load(){try{const r=await fetch('/api/checks?keyword='+encodeURIComponent(document.querySelector('#keyword').value));if(!r.ok)throw Error();const d=await r.json();document.querySelector('#records').replaceChildren(...d.records.map(x=>{const li=document.createElement('li');li.textContent=x.title;return li}));document.querySelector('#count').textContent='共 '+d.count+' 条记录';status.textContent='';}catch{status.textContent='记录暂时无法读取，请稍后重试。';}}
+document.querySelector('#keyword').oninput=load;
+document.querySelector('#add').onsubmit=async e=>{e.preventDefault();const button=e.currentTarget.querySelector('button');const input=document.querySelector('#title');button.disabled=true;try{const r=await fetch('/api/checks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:input.value})});if(!r.ok)throw Error();input.value='';await load();}catch{status.textContent='记录未保存，请稍后重试。';}finally{button.disabled=false;}};load();
+</script></body></html>
