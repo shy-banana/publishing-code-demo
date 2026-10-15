@@ -26,6 +26,11 @@ function sameIdentity(user, member) {
   return user?.sub === member.sub && typeof user?.corp_id === 'string' && user.corp_id.toLowerCase() === member.corpId && typeof user?.wecom_userid === 'string' &&
     user.wecom_userid.toLowerCase() === member.wecomUserId;
 }
+function sameCompany(user, owner) {
+  return typeof user?.sub === 'string' && UUID.test(user.sub) && text(user?.corp_id) && text(user?.wecom_userid) &&
+    Buffer.byteLength(user.corp_id) <= 128 && Buffer.byteLength(user.wecom_userid) <= 64 &&
+    !/\s/.test(user.corp_id + user.wecom_userid) && user.corp_id.toLowerCase() === owner.corpId;
+}
 
 // Validate the raw request target before URL parsing can normalize dot segments.
 // A single canonical decoded path is used for both route checks and ambiguity
@@ -111,7 +116,9 @@ export function validateCatalog(value) {
 }
 
 export function validateMenuAccess(value, appId) {
-  keys(value, ['schemaVersion', 'appId', 'owner', 'manager', 'grantableMenuIds', 'revision', 'catalog', 'grants', 'audit', 'requests', 'knownMenuIds', 'retiredMenuIds']);
+  keys(value, ['schemaVersion', 'appId', 'owner', 'manager', 'grantableMenuIds', 'revision', 'catalog', 'grants', 'audit', 'requests', 'knownMenuIds', 'retiredMenuIds', 'accessMode']);
+  const accessMode = value.accessMode === undefined ? 'restricted' : value.accessMode;
+  if (!['company', 'restricted'].includes(accessMode)) invalid();
   if (value.schemaVersion !== 1 || !UUID.test(value.appId) || (appId && value.appId !== appId) ||
       !Number.isSafeInteger(value.revision) || value.revision < 1 || !Array.isArray(value.grants) || value.grants.length > 1000 ||
       !Array.isArray(value.audit) || value.audit.length > 200 || !Array.isArray(value.requests) || value.requests.length > 100 ||
@@ -136,7 +143,7 @@ export function validateMenuAccess(value, appId) {
     identities.add(key); subjects.add(member.sub);
     return { ...member, name: grant.name, menuIds };
   });
-  return { schemaVersion: 1, appId: value.appId, owner, manager,
+  return { schemaVersion: 1, appId: value.appId, owner, manager, accessMode,
     grantableMenuIds, revision: value.revision, catalog, grants, audit: value.audit, requests: value.requests, knownMenuIds, retiredMenuIds };
 }
 
@@ -163,6 +170,7 @@ export class MenuPolicy {
   }
   owner() { const member = this.read().owner; return { sub: member.sub, corp_id: member.corpId, wecom_userid: member.wecomUserId }; }
   currentMenus(user, document = this.read()) {
+    if (document.accessMode === 'company') return sameCompany(user, document.owner) ? document.catalog.menus : [];
     if (sameIdentity(user, document.owner)) return document.catalog.menus;
     const member = document.grants.find(member => sameIdentity(user, member));
     const allowed = new Set(member?.menuIds.filter(id => document.grantableMenuIds.includes(id)) || []);

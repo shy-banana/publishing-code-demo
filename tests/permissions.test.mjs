@@ -38,6 +38,27 @@ test('真实PostgreSQL：保存及查询只取本人，菜单管理员也无全�
   assert.equal((await f.request('a', '/api/reports')).data.summary.count, 1);
 });
 
+test('全公司模式不枚举员工，所有同公司有效身份可用全部菜单，数据仍只取本人', async () => {
+  await f.writePolicy({ ...structuredClone(f.document), accessMode: 'company', grants: [], grantableMenuIds: [] });
+  for (const route of ['/', '/checks', '/reports', '/api/checks', '/api/reports']) assert.equal((await f.request('denied', route)).status, 200, route);
+  assert.equal((await f.request('denied', '/api/checks', { method: 'POST', body: { title: '全公司员工本人的记录' } })).status, 201);
+  assert.equal((await f.request('a', '/api/checks', { method: 'POST', body: { title: '另一员工本人的记录' } })).status, 201);
+  assert.deepEqual((await f.request('denied', '/api/checks')).data.records.map(row => row.title), ['全公司员工本人的记录']);
+  assert.equal((await f.request('denied', '/api/reports')).data.summary.count, 1);
+  assert.equal((await f.request('owner', '/api/reports')).data.summary.count, 0);
+  assert.equal((await f.request('denied', '/api/checks', { headers: { 'x-banana-corp-id': 'foreign-corp' } })).status, 403);
+  assert.equal((await f.request('denied', '/not-declared')).status, 403);
+  assert.equal((await f.request('denied', '/api/reports', { method: 'POST', body: {} })).status, 403);
+  assert.equal(f.policy.permits({ ...actors.denied, sub: 'invalid-sub' }), false);
+  assert.equal(f.policy.permits({ ...actors.denied, sub: [actors.denied.sub] }), false);
+  await f.writePolicy({ ...f.document, accessMode: 'restricted' });
+  assert.equal((await f.request('denied', '/api/checks')).status, 403);
+  assert.equal((await f.request('a', '/api/checks')).status, 200);
+  assert.equal((await f.request('a', '/api/reports')).status, 403);
+  await f.writePolicy({ ...f.document, accessMode: 'public' });
+  assert.equal((await f.request('a', '/api/checks')).status, 503);
+});
+
 test('拒绝客户端createdBy、他人范围、跨站及非法输入，不产生记录', async () => {
   for (const body of [{ title: '伪造', createdBy: actors.c.sub }, { title: '' }, { title: 'a'.repeat(121) }, { title: '<script>测试文字</script>', sub: actors.c.sub }]) assert.equal((await f.request('a', '/api/checks', { method: 'POST', body })).status, 400);
   assert.equal((await f.request('a', '/api/checks?createdBy=' + actors.c.sub)).status, 400);

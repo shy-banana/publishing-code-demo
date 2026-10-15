@@ -62,3 +62,22 @@ test('浏览器双菜单与本人汇总；撤权和503均清除已载入内容',
     await chmod(f.menuPath, 0o600);
   } finally { await page.close(); }
 });
+
+test('浏览器全公司员工无需单独授权可保存刷新，切回受限后清除当前内容', async () => {
+  await f.writePolicy({ ...structuredClone(f.document), accessMode: 'company', grants: [], grantableMenuIds: [] });
+  const page = await pageFor('denied');
+  try {
+    await page.goto(f.origin + '/checks'); await loaded(page);
+    assert.deepEqual(await page.locator('#menus a').allTextContents(), ['验收登记', '汇总查看']);
+    await page.getByLabel('验收记录', { exact: true }).fill('无需逐人授权的测试记录');
+    await page.getByRole('button', { name: '保存记录', exact: true }).click();
+    await page.getByText('记录已保存，刷新后仍可查看。', { exact: true }).waitFor();
+    await page.reload(); await loaded(page);
+    assert.match(await page.locator('#records').innerText(), /无需逐人授权的测试记录/);
+    await f.writePolicy({ ...f.document, accessMode: 'restricted' });
+    await page.getByRole('button', { name: '重新检查权限', exact: true }).click();
+    await page.getByRole('alert').filter({ hasText: '使用权已变化' }).waitFor();
+    assert.equal(await page.locator('#records').innerText(), '');
+    assert.equal(await page.locator('#menus a').count(), 0);
+  } finally { await page.close(); }
+});
