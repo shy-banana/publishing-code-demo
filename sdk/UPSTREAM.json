@@ -1,0 +1,7 @@
+{
+  "component": "香蕉攀岩应用及菜单权限校验",
+  "upstream": "https://github.com/bananaclimb/internal-publishing-platform",
+  "commit": "8c95e627424abfaa9e25329026ffa320958d054c",
+  "path": "gateway/src/menu-policy.js",
+  "files": { "menu-policy.js": "b57eee762d416ee901800cb0b0dc6f40d344108b2b825c91ae5c80ec92f3ac53" }
+}

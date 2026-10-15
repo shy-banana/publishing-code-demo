@@ -1,1 +1,14 @@
-{"name":"banana-publishing-code-demo","version":"1.0.0","private":true,"type":"module","scripts":{"start":"node server.mjs"},"dependencies":{"pg":"8.23.1"}}
+{
+  "name": "banana-publishing-code-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.25.0",
+  "engines": { "node": ">=22.12.0" },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test --test-concurrency=1 tests/permissions.test.mjs tests/browser.test.mjs"
+  },
+  "dependencies": { "pg": "8.23.1" },
+  "devDependencies": { "embedded-postgres": "18.4.0-beta.17", "playwright": "1.64.0" }
+}

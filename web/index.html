@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>菜单权限验收</title><link rel="stylesheet" href="/assets/style.css"><script defer src="/assets/app.js"></script>
+</head>
+<body>
+  <header><span class="brand">香蕉 · 应用中心</span><span class="tag">测试应用</span></header>
+  <main>
+    <div class="heading"><div><p class="eyebrow">应用与菜单权限</p><h1>菜单权限验收</h1></div><button type="button" id="refresh">重新检查权限</button></div>
+    <p class="scope">示例规则：登记和汇总均只包含本人创建的测试记录。</p>
+    <nav id="menus" aria-label="获准菜单"></nav>
+    <div id="status" role="status" aria-live="polite">正在检查权限…</div>
+    <section id="checks" aria-labelledby="checks-title" hidden>
+      <h2 id="checks-title">验收登记</h2>
+      <form id="check-form"><label for="title">验收记录</label><div class="form-row"><input id="title" name="title" required maxlength="120" placeholder="例如：已验证本人保存"><button type="submit" id="save">保存记录</button></div></form>
+      <h3>我的记录</h3><ul id="records"></ul>
+    </section>
+    <section id="reports" aria-labelledby="reports-title" hidden>
+      <h2 id="reports-title">汇总查看</h2><p>我的记录总数</p><strong id="count">—</strong><p id="latest"></p>
+    </section>
+    <footer>仅使用测试内容 · 菜单权由平台分配，数据范围由本应用校验</footer>
+  </main>
+</body>
+</html>

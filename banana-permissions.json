@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "menus": [
+    { "id": "checks", "name": "验收登记" },
+    { "id": "reports", "name": "汇总查看" }
+  ],
+  "routes": [
+    { "methods": ["GET"], "path": "/checks", "menuIds": ["checks"] },
+    { "methods": ["GET"], "path": "/reports", "menuIds": ["reports"] },
+    { "methods": ["GET", "POST"], "path": "/api/checks", "menuIds": ["checks"] },
+    { "methods": ["GET"], "path": "/api/reports", "menuIds": ["reports"] }
+  ],
+  "commonRoutes": [
+    { "methods": ["GET", "HEAD"], "path": "/" },
+    { "methods": ["GET", "HEAD"], "path": "/index.html" },
+    { "methods": ["GET", "HEAD"], "path": "/assets/*" }
+  ]
+}
